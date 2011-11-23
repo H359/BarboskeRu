@@ -1,0 +1,14 @@
+{% load thumbnail %}
+<div class="ware-item">
+    {% comment %}TODO: thumbnailize it{% endcomment %}
+    <div><a href="{{ item.get_absolute_url }}" title="{{ item.title }}">
+    {% if item.image %}
+    {% thumbnail item.image "150x150" as im %}
+    <img src="{{ im.url }}" width="{{ im.x }}" height="{{ im.y }}" alt="{{ item.title }}" style="margin: {{ im|margin:"150x150" }};" />
+    {% endthumbnail %}
+    {% else %}
+    <img src="http://placekitten.com/150/150" width="150" height="150" item="{{ item.title }}" />
+    {% endif %}
+    </a></div>
+    <h2><a href="{{ item.get_absolute_url }}" title="{{ item.title }}">{{ item.title }}</a></h2>
+</div>

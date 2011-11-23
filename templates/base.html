@@ -1,0 +1,41 @@
+<!doctype html>
+<!--[if lt IE 7 ]> <html lang="ru" class="no-js ie6"> <![endif]-->
+<!--[if IE 7 ]>    <html lang="ru" class="no-js ie7"> <![endif]-->
+<!--[if IE 8 ]>    <html lang="ru" class="no-js ie8"> <![endif]-->
+<!--[if IE 9 ]>    <html lang="ru" class="no-js ie9"> <![endif]-->
+<!--[if (gt IE 9)|!(IE)]><!--> <html lang="ru" class="no-js"> <!--<![endif]-->
+<head>
+    <meta charset="utf-8" />
+    <title>{% block page_title %}Барбоске{% endblock %}</title>
+    <meta name="description" content="{% block meta_description %}{% endblock %}" />
+    <meta name="author" content="{% block meta_author %}{% endblock %}" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+    <link rel="stylesheet" href="{{ STATIC_URL }}css/style.css" />
+    <link rel="stylesheet" href="{{ STATIC_URL }}css/layout.css" />
+    {% block css %}{% endblock %}
+    <script src="{{ STATIC_URL }}js/modernizr.min.js"></script>
+</head>
+<body class="{% block body_class %}{% endblock %}">
+    <header class="container container_16 clearfix">
+	<nav id="primaryNav" class="grid_16 omega alpha">
+	    <ul>
+		{% for item in shop.categories %}{% spaceless %}
+		{% if item.level == 1 %}<li><a href="{{ item.get_absolute_url }}" title="{{ item }}">{{ item }}</a></li>{% endif %}
+		{% endspaceless %}{% endfor %}
+	    </ul>
+	</nav>
+    </header>
+    <section>{% block body %}{% endblock %}</section>
+    <footer>
+    </footer>
+{% block javascript_library %}
+<script src="//ajax.googleapis.com/ajax/libs/jquery/1.6.4/jquery.min.js"></script>
+<script>!window.jQuery && document.write(unescape('%3Cscript src="{{ STATIC_URL }}js/jquery.1.6.4.min.js"%3E%3C/script%3E'))</script>
+{% endblock %}
+{% block javascript %}{% endblock %}
+<!--[if lt IE 7 ]>
+<script src="{{ STATIC_URL }}js/dd_belatedpng.js"></script>
+<script> DD_belatedPNG.fix('img, .png_bg');</script>
+<![endif]-->
+</body>
+</html>
