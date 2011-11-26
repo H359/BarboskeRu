@@ -49,13 +49,15 @@
 	    <li><a title="Контактная информация" href="{% url staticpages-page 'kontaktnaja-informazija.html' %}">Контактная информация</a></li>
 	</ul>
     </nav>
-    {% block app_body %}{% endblock %}
+    <section id="bodyCopy">{% block app_body %}{% endblock %}</section>
     <footer id="footer">
     </footer>
     </div>
+    <div id="ajax_loader"></div>
 {% block javascript_library %}
-<script src="//ajax.googleapis.com/ajax/libs/jquery/1.6.4/jquery.min.js"></script>
-<script>!window.jQuery && document.write(unescape('%3Cscript src="{{ STATIC_URL }}js/jquery.1.6.4.min.js"%3E%3C/script%3E'))</script>
+<script src="//ajax.googleapis.com/ajax/libs/jquery/1.7.0/jquery.min.js"></script>
+<script>!window.jQuery && document.write(unescape('%3Cscript src="{{ STATIC_URL }}js/jquery.min.js"%3E%3C/script%3E'))</script>
+<script src="{{ STATIC_URL }}js/app.js"></script>
 {% endblock %}
 {% block javascript %}{% endblock %}
 <!--[if lt IE 7 ]>
