@@ -77,9 +77,212 @@ h1, h2, h3, h4, h5, h6 { font-weight: bold; }
 a, a:active, a:visited { color: #607890; }
 a:hover { color: #036; }
 
-.showcase .ware-item {
+/*
+    // ========================================== \\
+   ||                                              ||
+   ||               Your styles !                  ||
+   ||                                              ||
+    \\ ========================================== //
+*/
+
+#container {
+    margin: 20px auto;
+    width: 95%;
+}
+
+#header {
+    height: 100px;
+    border-bottom: 2px solid #eee;
+}
+
+    #logo {
+	float: left;
+    }
+    
+    #phone {
+	float: right;
+    }
+    
+	#phone h1 {
+	    font-size: 3.5em;
+	    margin-right: 1em;
+	}
+	
+	    #phone h1 span {
+		font-size: 0.4em;
+		float: left;
+		margin-top: 0.5em;
+		margin-right: 0.5em;
+		color: #999;
+		font-weight: normal;
+	    }
+
+	#phone h2 {
+	    color: #666;
+	    font-size: 1.1em;
+	}
+
+    #basket {
+	float: right;
+	margin-top: 0.75em;
+    }
+
+#primaryNav {
+    margin-top: 5px;
+    margin-bottom: 50px;
+}
+
+    #primaryNav a {
+	color: #A70000;
+	font-size: 1.2em;
+    }
+    
+    #primaryNav li {
+	float: left;
+	padding: 5px 30px 5px 0;
+    }
+
+#categories {
+    float: left;
+    width: 14em;
+}
+
+    #categories li > a {
+	padding-bottom: 0.5em;
+	display: block;
+    }
+
+    #categories li li li {
+        padding-left: 0.5em;
+    }
+
+    #categories li.level-1 > a {
+	font-size: 1.1em;
+    }
+    
+    #categories li.level-1 {
+	margin-bottom: 1.5em;
+	padding-bottom: 1.5em;
+	border-bottom: 1px solid #eee;
+    }
+    
+        #categories li.level-1 > a {
+    	    font-weight: bold;
+    	    color: #444;
+        }
+
+#content {
+    margin-left: 17em;
+}
+
+.pagination {
+    clear: both;
+    text-align: center;
+    font-size: 1.2em;
+}
+
+.ware-card figure {
+    width: 300px;
+    float: left;
+}
+
+    .ware-card h1 {
+        font-size: 2.5em;
+    }
+    
+    .ware-card .variants td, .basket .variant td {
+	padding: 5px;
+	vertical-align: middle;
+     }
+
+td.weight { text-align: right; padding-right: 1px; }
+td.units { padding-left: 2px; }
+td.pack { text-align: right; }
+td.price { text-align: right; padding-right: 1px; }
+td.currency { padding-left: 2px; }
+td.qty { text-align: right; }
+td.qty input { width: 6em; }
+
+tr.ware td { font-size: 1.15em; padding: 5px; background: #eee; }
+
+.basket { float: left; width: 55%; }
+
+.basket .summary td, .basket .controls td { border: none; font-size: 1.2em; padding: 8px; }
+
+.basket td.units,
+.basket td.weight,
+.basket td.qty,
+.basket td.currency,
+.basket td.price { border-left: none; border-right: none; }
+
+.basket td.pack { border-right: none; }
+.basket td.delete { border-left: none; }
+
+.basket td { border: 1px solid #444; border-collapse: collapse; }
+
+.basket thead tr {
+    background: #444;
+    border-radius: 15px;
+    color: white;
+    font-size: 1.2em;
+}
+
+.basket thead tr td {
+    padding: 5px 0;
+}
+
+.basket .order td, .basket .order th {
+    border: none;
+    text-align: left;
+    padding: 5px;
+}
+
+.delivery-info {
+    float: right;
+    width: 40%;
+    font-size: 1.1em;
+    line-height: 1.5;
+    font-style: italic;
+}
+
+.ware-thumbnail {
+    float: left;
+    width: 33%;
     text-align: center;
 }
+
+    .ware-thumbnail a img {
+	padding: 0 5px 5px 5px;
+    }
+
+    .ware-thumbnail a {
+	position: relative;
+	text-decoration: none;
+    }
+
+    .ware-thumbnail .price-over-image {
+	position: absolute;
+	top: -35px;
+	right: -30px;
+	background: #A70000;
+	color: white;
+	font-size: 1.2em;
+	padding: 5px;
+	border-radius: 15px;
+	-webkit-border-radius: 15px;
+	-moz-border-radius: 15px;
+	-o-border-radius: 15px;
+    }
+
+    .ware-thumbnail figcaption {
+	height: 5em;
+    }
+    
+	.ware-thumbnail figcaption a {
+	    text-decoration: underline;
+	    position: static;
+	}
+
 
 .ir { display: block; text-indent: -999em; overflow: hidden; background-repeat: no-repeat; text-align: left; direction: ltr; }
 .hidden { display: none; visibility: hidden; }
@@ -90,6 +293,7 @@ a:hover { color: #036; }
 .clearfix:before, .clearfix:after { content: "\0020"; display: block; height: 0; overflow: hidden; }
 .clearfix:after { clear: both; }
 .clearfix { zoom: 1; }
+.clear { clear: both; }
 
 @media all and (orientation:portrait) {
 

@@ -1,3 +1,24 @@
 {% extends "base.html" %}
+{% load mptt_tags %}
 
-{% block body %}{% endblock %}
+{% block app_body %}
+<section>
+    <nav id="categories">
+	<ul>
+	{% recursetree shop.categories %}
+	    {% if node.level > 0 %}
+	    <li class="level-{{ node.level }}">
+		<a title="{{ node.title }}" href="{{ node.get_absolute_url }}">{{ node.title }}</a>
+		{% if not node.is_leaf_node %}
+		<ul>{{ children }}</ul>
+		{% endif %}
+	    </li>
+	    {% else %}
+	    {{ children }}
+	    {% endif %}
+	{% endrecursetree %}
+	</ul>
+    </nav>
+    <article id="content">{% block body %}{% endblock %}</article>
+</section>
+{% endblock %}

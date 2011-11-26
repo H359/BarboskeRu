@@ -1,20 +1,12 @@
 {% extends "shop/base.html" %}
+{% load endless %}
 
 {% block body %}
-<section>
-        {% for item in shop.categories %}
-	<article class="container container_16 clearfix">
-	    {% if item.parent_id == root.id %}
-	    <header class="grid_16 alpha omega">
-		<h1><a href="{{ item.get_absolute_url }}" title="{{ item.title }}">{{ item }}</a></h1>
-	    </header>
-	    {% for ware in item.get_showcase %}
-	    <article class="showcase grid_4 {% if forloop.first %}alpha{% endif %} {% if forloop.last %}omega{% endif %}">
-	    {% include 'partials/ware.item.html' with item=ware %}
-	    </article>
-	    {% endfor %}
-	    {% endif %}
-	</article>
-        {% endfor %}
-</section>
+    {% with wares=root.wares.all %}
+    {% paginate 9 wares %}
+    {% for ware in wares %}
+    {% include 'partials/ware.item.html' with item=ware %}
+    {% endfor %}
+    <div class="pagination">{% show_pages %}</div>
+    {% endwith %}
 {% endblock %}

@@ -1,4 +1,5 @@
 <!doctype html>
+{% load pytils_numeral %}
 <!--[if lt IE 7 ]> <html lang="ru" class="no-js ie6"> <![endif]-->
 <!--[if IE 7 ]>    <html lang="ru" class="no-js ie7"> <![endif]-->
 <!--[if IE 8 ]>    <html lang="ru" class="no-js ie8"> <![endif]-->
@@ -11,23 +12,47 @@
     <meta name="author" content="{% block meta_author %}{% endblock %}" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
     <link rel="stylesheet" href="{{ STATIC_URL }}css/style.css" />
-    <link rel="stylesheet" href="{{ STATIC_URL }}css/layout.css" />
+    <!--<link rel="stylesheet" href="{{ STATIC_URL }}css/layout.css" />-->
+    <!--<link rel="stylesheet" href="{{ STATIC_URL }}css/css3-buttons.css" />-->
     {% block css %}{% endblock %}
     <script src="{{ STATIC_URL }}js/modernizr.min.js"></script>
 </head>
 <body class="{% block body_class %}{% endblock %}">
-    <header class="container container_16 clearfix">
-	<nav id="primaryNav" class="grid_16 omega alpha">
-	    <ul>
-		{% for item in shop.categories %}{% spaceless %}
-		{% if item.level == 1 %}<li><a href="{{ item.get_absolute_url }}" title="{{ item }}">{{ item }}</a></li>{% endif %}
-		{% endspaceless %}{% endfor %}
-	    </ul>
-	</nav>
+    <div id="container">
+    <header id="header" class="clearfix">
+	<div id="logo">
+	    <a href="/"><img src="{{ STATIC_URL }}img/logo.png" width="230" height="79" /></a>
+	</div>
+	<div id="basket">
+	    {% with basket=shop.basket.get %}
+	    {% if basket.contents|length > 0 %}
+	    В корзине <a href="{% url shop-basket %}">{{ basket.contents|length|get_plural:"товар,товара,товаров" }}</a><br/>
+	    на сумму {{ basket.sum }} руб.<br/>
+	    <a href="{% url shop-basket %}">Оформить заказ</a>.
+	    {% else %}
+	    Ваша корзина пока что пуста.
+	    {% endif %}
+	    {% endwith %}
+	</div>
+	<div id="phone">
+	    <h1><span>(495)</span>641-7708</h1>
+	    <h2>Звоните с 9<sup>00</sup> до 21<sup>00</sup>, в будние дни</h2>
+	</div>
     </header>
-    <section>{% block body %}{% endblock %}</section>
-    <footer>
+    <nav id="primaryNav" class="clearfix">
+        <ul>
+    	    {% for item in shop.categories %}
+    	    {% if item.level == 1 %}<li><a href="{{ item.get_absolute_url }}" title="{{ item.title }}">{{ item.title }}</a></li>{% endif %}
+    	    {% endfor %}
+	    <li><a title="Скидки" href="{% url staticpages-page 'skidki.html' %}">Скидки</a></li>
+	    <li><a title="О доставке" href="{% url staticpages-page 'dostavka.html' %}">О доставке</a></li>
+	    <li><a title="Контактная информация" href="{% url staticpages-page 'kontaktnaja-informazija.html' %}">Контактная информация</a></li>
+	</ul>
+    </nav>
+    {% block app_body %}{% endblock %}
+    <footer id="footer">
     </footer>
+    </div>
 {% block javascript_library %}
 <script src="//ajax.googleapis.com/ajax/libs/jquery/1.6.4/jquery.min.js"></script>
 <script>!window.jQuery && document.write(unescape('%3Cscript src="{{ STATIC_URL }}js/jquery.1.6.4.min.js"%3E%3C/script%3E'))</script>

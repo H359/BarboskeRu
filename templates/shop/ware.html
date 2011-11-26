@@ -1,26 +1,39 @@
 {% extends "shop/base.html" %}
+{% load thumbnail %}
 
 {% block body %}
-<section class="container container_16 clearfix">
-    <article class="grid_16 alpha omega">
+<article class="ware-card">
         <header>
     	    <h1>{{ ware.title }}</h1>
-    	    <h2><a href="{{ ware.category.get_absolute_url }}" title="{{ ware.category }}">{{ ware.category }}</a></h2>
     	</header>
-    	<div class="ware-item">
-    	    <div class="image">
-    		{% if ware.image %}
-    		    <img src="{{ MEDIA_URL }}{{ ware.image }}">
-    		{% else %}
-    		    <img src="http://placekitten.com/200/300">
-    		{% endif %}
-    	    </div>
-    	    <div>
-    	    {% for variant in ware.variants.all %}
-    	    {{ variant.price }} {{ variant.pack }} {{ variant.weight }} {{ variant.units }} руб.
-    	    {% endfor %}
-    	    </div>
-    	    <div>{{ item.description }}</div>
-    	</div>
-</section>
+    	<figure>
+    	    {% if ware.image %}
+    		{% thumbnail ware.image "300x300" as im %}
+    		<img src="{{ im.url }}" width="{{ im.x }}" height="{{ im.y }}" alt="{{ ware.title }}" style="margin: {{ im|margin:"300x300" }}" />
+    	        {% endthumbnail %}
+    	    {% else %}
+    	        <img src="http://placekitten.com/300/300" />
+    	    {% endif %}
+    	</figure>
+    	<div>{{ ware.description|linebreaksbr }}</div>
+    	<table class="variants">
+    	{% for variant in ware.variants.all %}
+    	<tr>
+    	    <td class="weight">{{ variant.weight }}</td>
+    	    <td class="units">{{ variant.units }}</td>
+    	    <td class="pack">{{ variant.pack }}</td>
+    	    <td class="price">{{ variant.price }}</td>
+    	    <td class="currency">руб.</td>
+    	    <td class="buy">
+    		<form method="post" action="{% url shop-basket %}">
+    		    {% csrf_token %}
+    		    <input type="hidden" name="id" value="{{ variant.id }}" />
+    		    <input type="hidden" name="next" value="{{ request.path }}" />
+		    <button type="submit"><span class="icon icon169"></span><span class="label">Купить</span></button>
+    		</form>
+    	    </td>
+    	</tr>
+    	{% endfor %}
+    	</table>
+</article>
 {% endblock %}

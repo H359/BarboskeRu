@@ -1,0 +1,60 @@
+{% extends "shop/base.html" %}
+{% load endless %}
+
+{% block body %}
+{% if shop.basket.get.contents|length == 0 %}
+<div>Ваша корзина пуста.</div>
+{% else %}
+{% if complete %}
+<div>Спасибо, ваш заказ обработан.</div>
+{% else %}
+<form method="post" action="" class="basket">
+<table>
+    <thead>
+	<tr>
+	    <td colspan="3"></td>
+	    <td class="qty">Количество</td>
+	    <td class="sum" colspan="3">Сумма</td>
+	</tr>
+    </thead>
+    <tbody>
+    {% for entry, qty, total in shop.basket.get_contents %}
+    {% ifchanged entry.ware_id %}
+	<tr class="ware">
+	    <td colspan="7">{{ entry.ware.title }}</td>
+	</tr>
+    {% endifchanged %}
+	<tr class="variant">
+	    <td class="pack">{{ entry.pack }}</td>
+	    <td class="weight">{{ entry.weight }}</td>
+	    <td class="units">{{ entry.units }}</td>
+	    <td class="qty"><input type="text" name="variant.{{ entry.id }}" value="{{ qty }}" /></td>
+	    <td class="price">{{ total }}</td>
+	    <td class="currency">руб.</td>
+	    <td class="delete"><a href="{% url shop-basket %}?id={{ entry.id }}">удалить</a></td>
+	</tr>
+    {% endfor %}
+	<tr class="summary">
+	    <td colspan="4">Итого</td>
+	    <td class="price">{{ shop.basket.get.sum }}</td>
+	    <td class="currency" colspan="2">руб</td>
+	    <td></td>
+	</tr>
+    </tbody>
+</table>
+<table class="order">{{ order_form.as_table }}</table>
+<p>
+    {% csrf_token %}
+    <button type="submit"><span class="icon icon44"></span><span class="label">Заказать</span></button>
+</p>
+</form>
+<div class="delivery-info">
+    Сумма минимального заказа для Москвы (в пределах МКАД) — 1 500 руб.<br/>
+    Доставка по Москве — <strong>БЕСПЛАТНО!</strong><br/>
+    Сумма минимального заказа для Подмосковья — 3 000 руб.<br/>
+    Стоимость доставки по Подмосковью в пределах 10 км от МКАД — 300 руб.<br/>
+    Стоимость доставки по Подмосковью в пределах от 10 км от МКАД — оговаривается с оператором.<br/>
+</div>
+{% endif %}
+{% endif %}
+{% endblock %}

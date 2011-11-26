@@ -1,9 +1,21 @@
 from django.contrib import admin
 from django.db import models
+from django.forms import CharField
 
 from mptt.admin import MPTTModelAdmin
 
-from models import Ware, Variant, Category, Brand
+from models import Ware, Variant, Category, Brand, Order, OrderedWare,EmailTemplate
+
+class VariantAdminInline(admin.TabularInline):
+    model = Variant
+
+class OrderedWareAdminInline(admin.TabularInline):
+    model = OrderedWare
+    extra = 0
+    max_num = 1
+    fields = ('variant', 'qty')
+    readonly_fields = ('variant',)
+    can_delete = False
 
 class WareAdmin(admin.ModelAdmin):
     class Media:
@@ -16,12 +28,28 @@ class WareAdmin(admin.ModelAdmin):
     list_editable = ('brand', 'title', 'enabled')
     list_filter = ('brand',)
     search_fields = ('title',)
+    inlines = [VariantAdminInline]
 
 class VariantAdmin(admin.ModelAdmin):
     list_select_related = True
     list_display = ('ware', 'pack', 'price', 'units')
 
+class OrderAdmin(admin.ModelAdmin):
+    list_display = ('__unicode__', 'status', 'created_at')
+    list_filter = ('status',)
+    inlines = [OrderedWareAdminInline]
+
+    def get_form(self, request, obj=None, **kwargs):
+        request._obj = obj
+        return super(OrderAdmin, self).get_form(request, obj, **kwargs)
+
+class EmailTemplateAdmin(admin.ModelAdmin):
+    def has_delete_permission(self, request, obj=None):
+        return False
+
 admin.site.register(Category, MPTTModelAdmin)
 admin.site.register(Brand)
 admin.site.register(Ware, WareAdmin)
 admin.site.register(Variant, VariantAdmin)
+admin.site.register(Order, OrderAdmin)
+admin.site.register(EmailTemplate, EmailTemplateAdmin)

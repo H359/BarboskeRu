@@ -3,8 +3,12 @@ SITE_ROOT = os.path.abspath(os.path.dirname(__file__))
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
 ADMINS = (
-    # ('Your Name', 'your_email@example.com'),
+    ('Your Name', 'your_email@example.com'),
 )
+EMAIL_FROM = 'no-reply@barboske.ru'
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST='localhost'
+EMAIL_PORT=1025
 MANAGERS = ADMINS
 TIME_ZONE = 'Europe/Moscow'
 LANGUAGE_CODE = 'ru_RU'
@@ -48,8 +52,11 @@ INSTALLED_APPS = (
     'django.contrib.admin',
     'taggit',
     'mptt',
+    'pytils',
     'sorl.thumbnail',
+    'endless_pagination',
     'shop',
+    'staticpages',
 )
 THUMBNAIL_UPSCALE=False
 THUMBNAIL_FORMAT='PNG'

@@ -4,6 +4,7 @@ from django.shortcuts import Http404
 from annoying.decorators import render_to
 
 from models import Category, Ware
+from basket import BasketView
 
 @render_to('shop/category.html')
 def category(request, path=None):
@@ -22,3 +23,5 @@ def category(request, path=None):
             raise Http404
         res['root'] = candidates[0]
     return res
+
+basket = BasketView.as_view()
