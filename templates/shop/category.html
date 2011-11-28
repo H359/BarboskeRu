@@ -1,8 +1,17 @@
 {% extends "shop/base.html" %}
 {% load endless %}
+{% load chunks %}
+{% load cache %}
 
 {% block body %}
-    {% with wares=root.wares.all %}
+    {% if root.is_root_node %}
+    {% cache 600 'chunks' %}
+    <article class="chunk">
+	{% chunk "main-page-text" %}
+    </article>
+    {% endcache %}
+    {% endif %}
+    {% with wares=root.wares.select_related.all %}
     {% paginate 9 wares %}
     {% for ware in wares %}
     {% include 'partials/ware.item.html' with item=ware %}

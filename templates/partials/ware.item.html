@@ -6,9 +6,9 @@
 	<img src="{{ im.url }}" width="{{ im.x }}" height="{{ im.y }}" alt="{{ item.title }}" style="margin: {{ im|margin:"150x150" }};" />
 	{% endthumbnail %}
     {% else %}
-    <img src="http://placekitten.com/150/150" width="150" height="150" item="{{ item.title }}" />
-    <div class="price-over-image">{% if item.min_price != item.max_price %}от {% endif %}{{ item.min_price|floatformat:"2" }}&nbsp;р.</div>
+	<div class="thumb-replacer"><span>Изображение отстутствует</span></div>
     {% endif %}
+	<div class="price-over-image">{% if item.min_price != item.max_price %}от&nbsp;{% endif %}{{ item.min_price|floatformat:"2" }}&nbsp;р.</div>
     </a>
     <figcaption>
         <a href="{{ item.get_absolute_url }}" title="{{ item.title }}">{{ item.title }}</a>

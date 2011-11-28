@@ -191,6 +191,16 @@ a:hover { color: #036; }
     margin-left: 17em;
 }
 
+.chunk {
+    font-size: 1.2em;
+    margin-bottom: 1em;
+}
+
+.chunk p + p {
+    text-indent: 1em;
+    margin-top: 0.5em;
+}
+
 .pagination {
     clear: both;
     text-align: center;
@@ -271,14 +281,39 @@ tr.ware td { font-size: 1.15em; padding: 5px; background: #eee; }
 	padding: 0 5px 5px 5px;
     }
 
+    .ware-thumbnail a .thumb-replacer {
+	display: block;
+	height: 150px;
+	text-align: center;
+	width: 150px;
+	font-weight: bold;
+	color: white;
+	background: url(http://placekitten.com/g/150/150) no-repeat center center;
+    }
+
+	.ware-thumbnail a .thumb-replacer span {
+	    text-align: center;
+	    display: block;
+	    margin: 0 auto;
+	    line-height: 1.5em;
+	    width: 150px;
+	    font-size: 1.2em;
+	    line-height: 1.5em;
+	    padding-top: 3em;
+	}
+
     .ware-thumbnail a {
 	position: relative;
 	text-decoration: none;
+	display: block;
+	margin: 0 auto;
+	width: 150px;
+	height: 150px;
     }
 
     .ware-thumbnail .price-over-image {
 	position: absolute;
-	top: -35px;
+	top: 100px;
 	right: -30px;
 	background: #A70000;
 	color: white;
@@ -297,6 +332,9 @@ tr.ware td { font-size: 1.15em; padding: 5px; background: #eee; }
 	.ware-thumbnail figcaption a {
 	    text-decoration: underline;
 	    position: static;
+	    width: auto;
+	    height: auto;
+	    display: inline;
 	}
 
 

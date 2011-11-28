@@ -50,12 +50,14 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.admin',
+    'chunks',
     'taggit',
     'mptt',
     'pytils',
     'sorl.thumbnail',
     'endless_pagination',
     'shop',
+    'config',
     'staticpages',
 )
 THUMBNAIL_UPSCALE=False
@@ -86,6 +88,19 @@ LOGGING = {
     }
 }
 AUTOSLUG_SLUGIFY_FUNCTION = 'pytils.translit.slugify'
+if DEBUG:
+    CACHES = {
+        'default': {
+            'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        }
+    }
+    INSTALLED_APPS += ('debug_toolbar',)
+    INTERNAL_IPS = ('127.0.0.1',)
+    DEBUG_TOOLBAR_CONFIG = {
+        'INTERCEPT_REDIRECTS': False
+    }
+    MIDDLEWARE_CLASSES += ('debug_toolbar.middleware.DebugToolbarMiddleware',)
+    pass
 try:
     from local_settings import *
 except ImportError:

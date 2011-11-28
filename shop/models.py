@@ -9,6 +9,7 @@ from taggit.managers import TaggableManager
 from mptt.models import MPTTModel
 from autoslug import AutoSlugField
 
+import config.models
 from utils import cached, cached_method
 
 class EnabledManager(models.Manager):
@@ -26,6 +27,7 @@ class Category(MPTTModel):
     title    = models.CharField(max_length=250, verbose_name=u'Название')
     slug     = AutoSlugField(max_length=250, populate_from='title', unique=True)
     position = models.IntegerField(verbose_name=u'Положение', default=0)
+    text     = models.TextField(verbose_name=u'Сопроводительный текст', blank=True)
 
     _materialized_path = models.TextField(editable=False)
 
@@ -38,7 +40,7 @@ class Category(MPTTModel):
         def _get_tree():
             root = Category.objects.root_nodes()[0]
             return root.get_descendants(include_self=True)
-        return cached(_get_tree, 'rubrics')
+        return cached(_get_tree, 'categories')
 
     @models.permalink
     def get_absolute_url(self):
@@ -103,17 +105,81 @@ class Variant(models.Model):
 	verbose_name_plural=u'Варианты товаров'
 	ordering = ['-ware', '-position', '-id']
 
-    ware       = models.ForeignKey(Ware, verbose_name=u'Товар', related_name='variants')
-    price      = models.DecimalField(max_digits=12, decimal_places=2, verbose_name=u'Цена')
-    weight     = models.CharField(max_length=250, verbose_name=u'Вес', default='')
-    units      = models.CharField(max_length=250, verbose_name=u'Единицы измерения', default='')
-    pack       = models.CharField(max_length=250, verbose_name=u'Упаковка', default='')
-    articul    = models.CharField(max_length=250, verbose_name=u'Артикул')
-    store_qty  = models.IntegerField(default=0, verbose_name=u'Кол-во на складе')
-    position   = models.IntegerField(verbose_name=u'Положение',default=0)
+    ware           = models.ForeignKey(Ware, verbose_name=u'Товар', related_name='variants')
+    price          = models.DecimalField(max_digits=12, decimal_places=2, verbose_name=u'Цена')
+    fix_price      = models.BooleanField(verbose_name=u'Фиксировать цену', default=False, help_text=u'Отменяет сброс цены при импорте')
+    special_price  = models.BooleanField(verbose_name=u'Спец.цена (акция)', default=False)
+    weight         = models.CharField(max_length=250, verbose_name=u'Вес', default='')
+    units          = models.CharField(max_length=250, verbose_name=u'Единицы измерения', default='')
+    pack           = models.CharField(max_length=250, verbose_name=u'Упаковка', default='')
+    articul        = models.CharField(max_length=250, verbose_name=u'Артикул', db_index=True)
+    store_qty      = models.IntegerField(default=0, verbose_name=u'Кол-во на складе')
+    position       = models.IntegerField(verbose_name=u'Положение',default=0)
+    base_price     = models.DecimalField(max_digits=12, decimal_places=2, verbose_name=u'Цена из базы поставщика')
+
+    def save(self, *args, **kwargs):
+        if not self.fix_price:
+            self.price = (1+config.models.Entry.get('shop.discount.markup')/100)*self.base_price
+        super(Variant, self).save(*args, **kwargs)
 
     def __unicode__(self):
         return u'%s - %s - %s' % (self.articul, self.ware, ' '.join([self.weight, self.units, self.pack]))
+
+class ImportIssue(models.Model):
+    class Meta:
+        verbose_name=u'Проблема импорта'
+        verbose_name_plural=u'Проблемы импорта'
+
+    created_at  = models.DateTimeField(auto_now_add=True, verbose_name=u'Дата импорта')
+    variant     = models.ForeignKey(Variant, verbose_name=u'Вариант')
+    description = models.TextField(verbose_name=u'Описание проблемы')
+
+    def __unicode__(self):
+        return u'%s' % self.description
+
+class PriceTransformerASTNode(MPTTModel):
+    # PriceTransformer(x) = price_modification_coefficient
+    # x = variant with select_related
+    LEXEME_TYPE = (
+        (1, 'IF'),
+        (2, 'OPERATOR'), # +, -, *, >, >=, <, <=, ==
+        (3, 'VARIABLE'), # x.ware.title, x.price, x.ware.category, ...
+    )
+    parent    = models.ForeignKey('self', blank=True, null=True, related_name='children')
+    comment   = models.TextField(blank=True)
+    lexeme    = models.IntegerField(choices=LEXEME_TYPE)
+    value     = models.TextField()
+    # compiled s-expr (self and children)
+    _compiled = models.TextField(blank=True)
+
+    def to_python(self):
+        lType = self.LEXEME_TYPE[self.lexeme]
+        children = list( self.children.all() )
+        if lType == 'IF':
+            res = 'if (%s):\n%s\n' % (children[0].compile(), children[1].compile())
+            if len(children) > 2:
+                res += 'else:\n%s' % children[2].compile()
+        elif lType == 'OPERATOR':
+            res = self.value.join(map(lambda w: w.compile(), children))
+        elif lType == '':
+            res = self.value
+        return res
+
+    # compiles self and children
+    def compile(self):
+        # compile
+        self._compiled = self.to_python()
+        self.save()
+        return self._compiled
+
+class PriceTransformer(models.Model):
+    class Meta:
+        verbose_name=u'Преобразование цены'
+        verbose_name_plural=u'Преобразования цен'
+
+    priority = models.IntegerField(verbose_name=u'Приоритет исполнения', unique=True)
+    title    = models.CharField(max_length=250, verbose_name=u'Название')
+    ast_root = models.ForeignKey(PriceTransformerASTNode, verbose_name=u'Преобразование',blank=True, null=True)
 
 class EmailTemplate(models.Model):
     TYPE = (
