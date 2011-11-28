@@ -9,6 +9,9 @@ from models import Ware, Variant, Category, Brand, Order, OrderedWare, EmailTemp
 class VariantAdminInline(admin.TabularInline):
     model = Variant
 
+    def queryset(self, request):
+        return super(VariantAdminInline, self).queryset(request).select_related()
+
 class OrderedWareAdminInline(admin.TabularInline):
     model = OrderedWare
     extra = 0
@@ -25,15 +28,21 @@ class WareAdmin(admin.ModelAdmin):
 
     list_select_related = True
     list_display = ('id', 'brand', 'title', 'enabled', 'category')
-    list_editable = ('brand', 'title', 'enabled')
+    list_editable = ('title', 'enabled')
     list_filter = ('brand',)
     search_fields = ('title',)
     inlines = [VariantAdminInline]
+
+    def queryset(self, request):
+        return super(WareAdmin, self).queryset(request).select_related()
 
 class VariantAdmin(admin.ModelAdmin):
     list_select_related = True
     list_display = ('ware', 'pack', 'price', 'units')
     readonly_fields = ('base_price',)
+
+    def queryset(self, request):
+        return super(VariantAdmin, self).queryset(request).select_related()
 
 class OrderAdmin(admin.ModelAdmin):
     list_display = ('__unicode__', 'status', 'created_at')

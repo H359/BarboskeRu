@@ -27,7 +27,7 @@ class Category(MPTTModel):
     title    = models.CharField(max_length=250, verbose_name=u'Название')
     slug     = AutoSlugField(max_length=250, populate_from='title', unique=True)
     position = models.IntegerField(verbose_name=u'Положение', default=0)
-    text     = models.TextField(verbose_name=u'Сопроводительный текст', blank=True)
+    text     = models.TextField(verbose_name=u'Сопроводительный текст', blank=True, null=True)
 
     _materialized_path = models.TextField(editable=False)
 
@@ -65,8 +65,10 @@ class Brand(models.Model):
         verbose_name=u'Бренд'
         verbose_name_plural=u'Бренды'
     
-    title = models.CharField(max_length=250, verbose_name=u'Название')
-    slug  = AutoSlugField(max_length=250, populate_from='title', unique=True)
+    title       = models.CharField(max_length=250, verbose_name=u'Название')
+    slug        = AutoSlugField(max_length=250, populate_from='title', unique=True)
+    description = models.TextField(verbose_name=u'Описание')
+    logo        = models.ImageField(verbose_name=u'Логотип', blank=True, upload_to='brands/')
 
     def __unicode__(self):
         return u'%s' % self.title
@@ -89,7 +91,7 @@ class Ware(models.Model):
     image       = models.ImageField(blank=True, verbose_name=u'Изображение', upload_to='media/wares')
 
     objects     = EnabledManager()
-    tags        = TaggableManager()
+    #tags        = TaggableManager(blank=True)
 
     def __unicode__(self):
         return u'%s' % self.title
@@ -116,11 +118,6 @@ class Variant(models.Model):
     store_qty      = models.IntegerField(default=0, verbose_name=u'Кол-во на складе')
     position       = models.IntegerField(verbose_name=u'Положение',default=0)
     base_price     = models.DecimalField(max_digits=12, decimal_places=2, verbose_name=u'Цена из базы поставщика')
-
-    def save(self, *args, **kwargs):
-        if not self.fix_price:
-            self.price = (1+config.models.Entry.get('shop.discount.markup')/100)*self.base_price
-        super(Variant, self).save(*args, **kwargs)
 
     def __unicode__(self):
         return u'%s - %s - %s' % (self.articul, self.ware, ' '.join([self.weight, self.units, self.pack]))

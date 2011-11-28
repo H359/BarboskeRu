@@ -11,6 +11,9 @@
     </article>
     {% endcache %}
     {% endif %}
+    {% if root.text %}
+    <article class="chunk">{{ root.text }}</article>
+    {% endif %}
     {% with wares=root.wares.select_related.all %}
     {% paginate 9 wares %}
     {% for ware in wares %}
