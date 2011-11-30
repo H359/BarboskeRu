@@ -1,6 +1,7 @@
 #-*- coding: utf-8 -*-
 from django.db import models
 from django.contrib.auth.models import User
+from django.core.validators import MinLengthValidator
 
 from taggit.managers import TaggableManager
 from mptt.models import MPTTModel
@@ -17,11 +18,12 @@ class Category(MPTTModel):
     class Meta:
 	verbose_name=u'Категория'
 	verbose_name_plural=u'Категории'
+	ordering = ('lft',)
 
     parent        = models.ForeignKey('self', null=True, blank=True, related_name='children', verbose_name=u'Родительская категория')
     title         = models.CharField(max_length=250, verbose_name=u'Название')
     slug          = AutoSlugField(max_length=250, populate_from='title', unique=True)
-    text          = MarkupField(verbose_name=u'Описание', blank=True, null=True)
+    text          = MarkupField(verbose_name=u'Описание', blank=True, null=True, default='')
     market_export = models.BooleanField(verbose_name=u'Экспорт в Yandex.Market', help_text ='с подкатегориями', default=False)
 
     _materialized_path = models.TextField(editable=False)
@@ -61,7 +63,7 @@ class Brand(models.Model):
     
     title       = models.CharField(max_length=250, verbose_name=u'Название')
     slug        = AutoSlugField(max_length=250, populate_from='title', unique=True)
-    description = MarkupField(verbose_name=u'Описание', blank=True, null=True)
+    description = MarkupField(verbose_name=u'Описание', blank=True, null=True, default='')
     logo        = models.ImageField(verbose_name=u'Логотип', blank=True, upload_to='brands/')
 
     def __unicode__(self):
@@ -77,7 +79,7 @@ class Ware(models.Model):
     slug        = AutoSlugField(max_length=250, populate_from='title')
     category    = models.ForeignKey(Category, verbose_name=u'Категория', related_name='wares')
     brand       = models.ForeignKey(Brand, verbose_name=u'Бренд', related_name='wares')
-    description = MarkupField(verbose_name=u'Описание',blank=True, null=True)
+    description = MarkupField(verbose_name=u'Описание',blank=True, null=True, default='')
     enabled     = models.BooleanField(verbose_name=u'Активен')
     position    = models.IntegerField(verbose_name=u'Положение', default=0)
     min_price   = models.DecimalField(max_digits=12, decimal_places=2, editable=False, default=0)
@@ -85,6 +87,7 @@ class Ware(models.Model):
     image       = models.ImageField(blank=True, verbose_name=u'Изображение', upload_to='media/wares')
 
     objects     = EnabledManager()
+    all_objects = models.Manager()
     #tags        = TaggableManager(blank=True)
 
     def __unicode__(self):
@@ -108,7 +111,7 @@ class Variant(models.Model):
     weight         = models.CharField(max_length=250, verbose_name=u'Вес', default='')
     units          = models.CharField(max_length=250, verbose_name=u'Единицы измерения', default='')
     pack           = models.CharField(max_length=250, verbose_name=u'Упаковка', default='')
-    articul        = models.CharField(max_length=250, verbose_name=u'Артикул', db_index=True)
+    articul        = models.CharField(max_length=250, verbose_name=u'Артикул', db_index=True, unique=True, validators=[MinLengthValidator(2)])
     store_qty      = models.IntegerField(default=0, verbose_name=u'Кол-во на складе')
     position       = models.IntegerField(verbose_name=u'Положение',default=0)
     base_price     = models.DecimalField(max_digits=12, decimal_places=2, verbose_name=u'Цена из базы поставщика')

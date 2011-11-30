@@ -34,7 +34,11 @@ class WareAdmin(admin.ModelAdmin):
     inlines = [VariantAdminInline]
 
     def queryset(self, request):
-        return super(WareAdmin, self).queryset(request).select_related()
+	qs = self.model.all_objects
+	ordering = self.ordering or ()
+	if ordering:
+	    qs = qs.order_by(*ordering)
+	return qs
 
 class VariantAdmin(admin.ModelAdmin):
     list_select_related = True
