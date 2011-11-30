@@ -25,8 +25,9 @@ class Basket(object):
         return self.basket
 
     def remove(self, id):
-        del self.request.session['basket']['contents'][id]
-        self.save()
+        if id in self.request.session['basket']['contents']:
+    	    del self.request.session['basket']['contents'][id]
+    	    self.save()
 
     def put(self, id, qty=1):
         self.basket['contents'].setdefault(id, 0)
@@ -54,7 +55,7 @@ class BasketView(TemplateView):
         if 'id' in request.GET:
             basket = Basket(request)
             try:
-                basket.remove(int(request.GET['id']))
+                basket.remove(int(request.GET.get('id', 0)))
             except ValueError:
                 pass
             return redirect(request.path)
@@ -85,15 +86,14 @@ class BasketView(TemplateView):
                     instance = self.order_form.save()
                     for variant, qty, _ in basket.get_contents():
                         OrderedWare.objects.create(
-                            variant = variant,
-                            qty = qty,
-                            order = instance
+                            variant=variant,
+                            qty=qty,
+                            order=instance
                         )
                     basket.reset()
-                    instance.send_notification()
+                    instance.status = 1
+                    instance.save()
                     return self.render_to_response({'complete': True})
                 else:
                     return self.render_to_response({'complete': False})
-                    #return super(BasketView, self).post(request, *args, **kwargs)
             return redirect(request.path)
-

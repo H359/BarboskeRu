@@ -1,15 +1,12 @@
 #-*- coding: utf-8 -*-
 from django.db import models
 from django.contrib.auth.models import User
-from django.core.mail import send_mass_mail
-from django.conf import settings
-from django.template import Template, Context
 
 from taggit.managers import TaggableManager
 from mptt.models import MPTTModel
 from autoslug import AutoSlugField
+from markitup.fields import MarkupField
 
-import config.models
 from utils import cached, cached_method
 
 class EnabledManager(models.Manager):
@@ -20,20 +17,18 @@ class Category(MPTTModel):
     class Meta:
 	verbose_name=u'Категория'
 	verbose_name_plural=u'Категории'
-    class MPTTMeta:
-	order_insertion_by = ['position']
 
-    parent   = models.ForeignKey('self', null=True, blank=True, related_name='children', verbose_name=u'Родительская категория')
-    title    = models.CharField(max_length=250, verbose_name=u'Название')
-    slug     = AutoSlugField(max_length=250, populate_from='title', unique=True)
-    position = models.IntegerField(verbose_name=u'Положение', default=0)
-    text     = models.TextField(verbose_name=u'Сопроводительный текст', blank=True, null=True)
+    parent        = models.ForeignKey('self', null=True, blank=True, related_name='children', verbose_name=u'Родительская категория')
+    title         = models.CharField(max_length=250, verbose_name=u'Название')
+    slug          = AutoSlugField(max_length=250, populate_from='title', unique=True)
+    text          = MarkupField(verbose_name=u'Описание', blank=True, null=True)
+    market_export = models.BooleanField(verbose_name=u'Экспорт в Yandex.Market', help_text ='с подкатегориями', default=False)
 
     _materialized_path = models.TextField(editable=False)
 
     def save(self, *args, **kwargs):
-        self._materialized_path = '/'.join([x.slug for x in self.get_ancestors()] + [self.slug])
-        super(Category, self).save(*args, **kwargs)
+	super(Category, self).save(*args, **kwargs)
+        Category.objects.filter(id=self.id).update(_materialized_path = '/'.join([x.slug for x in self.get_ancestors()] + [self.slug]))
 
     @staticmethod
     def get_tree():
@@ -56,7 +51,6 @@ class Category(MPTTModel):
                     break
         return reversed(path)
 
-
     def __unicode__(self):
         return u'%s' % self.title
 
@@ -67,7 +61,7 @@ class Brand(models.Model):
     
     title       = models.CharField(max_length=250, verbose_name=u'Название')
     slug        = AutoSlugField(max_length=250, populate_from='title', unique=True)
-    description = models.TextField(verbose_name=u'Описание')
+    description = MarkupField(verbose_name=u'Описание', blank=True, null=True)
     logo        = models.ImageField(verbose_name=u'Логотип', blank=True, upload_to='brands/')
 
     def __unicode__(self):
@@ -83,7 +77,7 @@ class Ware(models.Model):
     slug        = AutoSlugField(max_length=250, populate_from='title')
     category    = models.ForeignKey(Category, verbose_name=u'Категория', related_name='wares')
     brand       = models.ForeignKey(Brand, verbose_name=u'Бренд', related_name='wares')
-    description = models.TextField(verbose_name=u'Описание',blank=True)
+    description = MarkupField(verbose_name=u'Описание',blank=True, null=True)
     enabled     = models.BooleanField(verbose_name=u'Активен')
     position    = models.IntegerField(verbose_name=u'Положение', default=0)
     min_price   = models.DecimalField(max_digits=12, decimal_places=2, editable=False, default=0)
@@ -107,10 +101,10 @@ class Variant(models.Model):
 	verbose_name_plural=u'Варианты товаров'
 	ordering = ['-ware', '-position', '-id']
 
+    title          = models.CharField(max_length=250, blank=True, null=True)
     ware           = models.ForeignKey(Ware, verbose_name=u'Товар', related_name='variants')
     price          = models.DecimalField(max_digits=12, decimal_places=2, verbose_name=u'Цена')
     fix_price      = models.BooleanField(verbose_name=u'Фиксировать цену', default=False, help_text=u'Отменяет сброс цены при импорте')
-    special_price  = models.BooleanField(verbose_name=u'Спец.цена (акция)', default=False)
     weight         = models.CharField(max_length=250, verbose_name=u'Вес', default='')
     units          = models.CharField(max_length=250, verbose_name=u'Единицы измерения', default='')
     pack           = models.CharField(max_length=250, verbose_name=u'Упаковка', default='')
@@ -118,6 +112,7 @@ class Variant(models.Model):
     store_qty      = models.IntegerField(default=0, verbose_name=u'Кол-во на складе')
     position       = models.IntegerField(verbose_name=u'Положение',default=0)
     base_price     = models.DecimalField(max_digits=12, decimal_places=2, verbose_name=u'Цена из базы поставщика')
+    original_title = models.CharField(verbose_name=u'Название из базы', max_length=250)
 
     def __unicode__(self):
         return u'%s - %s - %s' % (self.articul, self.ware, ' '.join([self.weight, self.units, self.pack]))
@@ -178,23 +173,8 @@ class PriceTransformer(models.Model):
     title    = models.CharField(max_length=250, verbose_name=u'Название')
     ast_root = models.ForeignKey(PriceTransformerASTNode, verbose_name=u'Преобразование',blank=True, null=True)
 
-class EmailTemplate(models.Model):
-    TYPE = (
-        u'Уведомление о поступлении заказа',
-        u'Уведомление об обработке заказа'
-    )
-    class Meta:
-        verbose_name=u'Шаблон письма'
-        verbose_name_plural=u'Шаблоны писем'
-    type = models.IntegerField(choices=enumerate(TYPE), verbose_name=u'Тип')
-    subj = models.CharField(max_length=200, verbose_name=u'Тема письма')
-    text = models.TextField(verbose_name=u'Тело письма')
-
-    def __unicode__(self):
-        return self.TYPE[self.type]
-
 class Order(models.Model):
-    STATUS = (u'Создан', u'Обработан', u'Доставлен', u'Ошибка')
+    STATUS = (u'Создан', u'Оформлен', u'Обработан', u'Доставлен', u'Ошибка')
     class Meta:
         verbose_name=u'Заказ'
         verbose_name_plural=u'Заказы'
@@ -212,21 +192,15 @@ class Order(models.Model):
     def __unicode__(self):
         return u'%s %s' % (self.fio, self.phone)
 
-    def send_notification(self):
-        c = Context({'order': self})
-        # notify user
-        user_message_template = EmailTemplate.objects.get(type=0)
-        subject = Template(user_message_template.subj)
-        message = Template(user_message_template.text)
-        usermessage = (subject.render(c), message.render(c), settings.EMAIL_FROM, [self.email])
-        # notify manager
-        managermessage = (
-            u'Поступил новый заказ', 
-            u'Номер %d' % self.id, 
-            settings.EMAIL_FROM, 
-            [user.email for user in User.objects.filter(is_staff=True)]
-        )
-        send_mass_mail( (usermessage, managermessage), fail_silently=not settings.DEBUG)
+    def save(self, *args, **kwargs):
+	super(Order, self).save(*args, **kwargs)
+	if self.status == 1:
+	    data = {'order': self}
+	    # notify user
+	    EmailTemplate.get('shop.order.create_notification.user').send(receivers=[self.email], data=data)
+	    # notify manager
+	    managers = [user.email for user in User.objects.filter(is_staff=True)]
+	    EmailTemplate.get('shop.order.create_notification.manager').send(receivers=managers, data=data)
 
 class OrderedWare(models.Model):
     class Meta:

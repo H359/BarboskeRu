@@ -24,6 +24,7 @@ class Command(BaseCommand):
         print coeff
         return
         with transaction.commit_on_success():
+    	    dbf = ydbf.open(tf, encoding='cp866')
             for record in dbf:
                 created = False
                 try:
@@ -40,6 +41,7 @@ class Command(BaseCommand):
                     variant.articul = record['COD_ARTIC']
                     created = True
                     try:
+                	variant.original_title = record['NAME_ARTIC']
                         variant.store_qty = int(record['REZ_KOLCH'])
                         variant.base_price = record['CENA_ARTIC']
                         variant.pack = int(record['EDN_V_UPAK'])

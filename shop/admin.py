@@ -4,7 +4,7 @@ from django.forms import CharField
 
 from mptt.admin import MPTTModelAdmin
 
-from models import Ware, Variant, Category, Brand, Order, OrderedWare, EmailTemplate, PriceTransformer, ImportIssue
+from models import Ware, Variant, Category, Brand, Order, OrderedWare, ImportIssue
 
 class VariantAdminInline(admin.TabularInline):
     model = Variant
@@ -53,14 +53,12 @@ class OrderAdmin(admin.ModelAdmin):
         request._obj = obj
         return super(OrderAdmin, self).get_form(request, obj, **kwargs)
 
-class EmailTemplateAdmin(admin.ModelAdmin):
-    def has_delete_permission(self, request, obj=None):
-        return False
-
+"""
 class PriceTransformerAdmin(admin.ModelAdmin):
     class Media:
         css = {'all': ('css/pt_tree.css',)}
         js = ('js/d3.js', 'js/d3.layout.js', 'js/pt.js',)
+"""
 
 class ImportIssueAdmin(admin.ModelAdmin):
     list_display = ('__unicode__', 'variant', 'created_at')
@@ -71,6 +69,5 @@ admin.site.register(Brand)
 admin.site.register(Ware, WareAdmin)
 admin.site.register(Variant, VariantAdmin)
 admin.site.register(Order, OrderAdmin)
-admin.site.register(EmailTemplate, EmailTemplateAdmin)
-admin.site.register(PriceTransformer, PriceTransformerAdmin)
+#admin.site.register(PriceTransformer, PriceTransformerAdmin)
 admin.site.register(ImportIssue, ImportIssueAdmin)

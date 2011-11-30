@@ -9,6 +9,7 @@ urlpatterns = patterns('',
     url(r'^catalog/(?P<path>.*)$', 'shop.views.category', name='shop-category'),
     url(r'^basket/$', 'shop.views.basket', name='shop-basket'),
     url(r'^page/(?P<url>.*)$', 'staticpages.views.page', name='staticpages-page'),
+    url(r'^markitup/', include('markitup.urls')),
     url(r'^admin/', include(admin.site.urls)),
 )
 

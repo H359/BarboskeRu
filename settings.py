@@ -56,10 +56,14 @@ INSTALLED_APPS = (
     'pytils',
     'sorl.thumbnail',
     'endless_pagination',
+    'markitup',
     'shop',
     'config',
+    'mail',
     'staticpages',
 )
+MARKITUP_FILTER=('markdown.markdown', {'safe_mode': True})
+MARKITUP_AUTO_PREVIEW=True
 THUMBNAIL_UPSCALE=False
 THUMBNAIL_FORMAT='PNG'
 THUMBNAIL_DEBUG=DEBUG
@@ -94,13 +98,14 @@ if DEBUG:
             'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
         }
     }
+    """
     INSTALLED_APPS += ('debug_toolbar',)
     INTERNAL_IPS = ('127.0.0.1',)
     DEBUG_TOOLBAR_CONFIG = {
         'INTERCEPT_REDIRECTS': False
     }
     MIDDLEWARE_CLASSES += ('debug_toolbar.middleware.DebugToolbarMiddleware',)
-    pass
+    """
 try:
     from local_settings import *
 except ImportError:
