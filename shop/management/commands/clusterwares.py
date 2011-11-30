@@ -17,9 +17,9 @@ class Command(BaseCommand):
 	self.abbr_re = re.compile(r'[ ]+д/[ ]*(\S+)', re.U | re.I)
 	self.spaces_re = re.compile(r'[ ]+', re.U)
 	self.useless_symb_re = re.compile('\s+(\*[0-9]+)+', re.U)
+	self.brand_re = re.compile(r'^\"(?P<brand>[^\"]+)\"', re.U)
 	def get_distance(a,b):
-	    dst = Levenshtein.distance(a['NAME_ARTIC'].lower(), b['NAME_ARTIC'].lower())
-	    return dst
+	    return Levenshtein.distance(a['NAME_ARTIC'].lower(), b['NAME_ARTIC'].lower())
 	def transform(record):
 	    name = record['NAME_ARTIC'].encode('utf-8')
 	    record['ORIGINAL_NAME'] = name
@@ -27,6 +27,10 @@ class Command(BaseCommand):
 	    if subs is not None:
 		record['WEIGHT_ZAM'] = subs.groupdict()['wght']
 		name = self.weights_re.sub(' ', name)
+	    subs = self.brand_re.search(name)
+	    if subs is not None:
+		record['BRAND'] = subs.groupdict()['brand']
+		name = self.brand_re.sub(' ', name)
 	    name = self.abbr_re.sub(' для \\1', name)
 	    name = self.useless_symb_re.sub(' ', name)
 	    name = self.spaces_re.sub(' ', name)
@@ -35,7 +39,7 @@ class Command(BaseCommand):
 	with open('/home/zw0rk/Downloads/price_kolc_zoost.dbf', 'rb') as f:
 	    dbf = ydbf.open(f, encoding='cp866')
 	    clusters = []
-	    records = [transform(record) for record in dbf]
+	    records = map(transform, dbf)
 	    records.sort(key=lambda w: w['NAME_ARTIC'])
 	    distance, threshold = 0, 5
 	    cur = 0
@@ -53,6 +57,6 @@ class Command(BaseCommand):
 		    cluster.append(records[i])
 	    for x in clusters:
 		for y in x:
-		    print y['NAME_ARTIC']
+		    print y['NAME_ARTIC'], '   brand=', y.get('BRAND', 'UNKNOWN BRAND')
 		    #,' ||| ', y['ORIGINAL_NAME'], y.get('WEIGHT_ZAM', '[NO]')
 		print '-'*50
