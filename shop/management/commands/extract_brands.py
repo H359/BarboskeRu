@@ -11,19 +11,12 @@ class Command(BaseCommand):
 
 	def handle(self, *args, **kwargs):
 		cats = Category.objects.all()
+		for cat in cats:
+			if TitleClassifier.classify(cat.title):
+				print "Gotcha! ID %s title %s" % (cat.pk, cat.title)
 
 
 class WordClassifier(object):
-
-	# indic = {
-	# 	'latin': ":latin",
-	# 	'russian': ":russian",
-	# 	'dash': ':dash',
-	# 	'braced_rus': ':braced_rus',
-	# 	'braced_latin': ':braced_latin',
-	# 	'preposition': ':preposition',
-	# 	'braced_preposition': ':braced_preposition'
-	# }
 
 	number_re = re.compile('^[0-9]+$')
 	latin_re = re.compile('^[a-zA-Z\-\'0-9]+$')
@@ -76,7 +69,7 @@ class TitleClassifier(object):
 			'russian': ('russian', True),
 			'latin': ('latin', True),
 			'preposition': ('preposition', False)
-		}
+		},
 		'open_brace': {
 			'russian': ("open_brace_ru", True),
 			'latin': ('open_brace_lat', True),
@@ -150,12 +143,18 @@ class TitleClassifier(object):
 
 	@classmethod
 	def classify(cls, title):
+		""" For now it returns True or False, since we need to differ only brands and categories
+		"""
 		reduced_list = [ cl for (cl, w) in TitleClassifier.reduce(TitleClassifier.classify_words(title)) ]
 		brand_classes = [ ['russian', 'braced_ru'],
 			['latin', 'braced_ru'],
+			['latin', 'braced_lat'],
 			['russian', 'braced_lat'],
 			['latin', 'dash', 'russian', 'braced_ru'],
 			['russian', 'dash', 'latin', 'braced_ru']
 		]
 		if reduced_list in brand_classes:
-			print title
+			#TODO: brand name extraction here
+			return True
+		else:
+			return False

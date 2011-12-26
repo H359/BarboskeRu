@@ -43,6 +43,9 @@ class Category(MPTTModel):
     def get_absolute_url(self):
         return ('shop-category', (), {'path': self._materialized_path})
 
+    def to_brand(self):
+        pass #TODO: actual code that transfers this this to category
+
     def get_node_ancestors(self):
         tree = Category.get_tree()
         path = [self]
