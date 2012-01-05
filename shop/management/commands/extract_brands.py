@@ -12,8 +12,9 @@ class Command(BaseCommand):
 	def handle(self, *args, **kwargs):
 		cats = Category.objects.all()
 		for cat in cats:
-			if TitleClassifier.classify(cat.title):
-				print "Gotcha! ID %s title %s" % (cat.pk, cat.title)
+			brand_p, brand_name = TitleClassifier.classify(cat.title)
+			if brand_p:
+				print "Gotcha! ID %s title %s" % (cat.pk, brand_name)
 
 
 class WordClassifier(object):
@@ -143,9 +144,12 @@ class TitleClassifier(object):
 
 	@classmethod
 	def classify(cls, title):
-		""" For now it returns True or False, since we need to differ only brands and categories
+		""" Return a pair. First member is True/False and shows if the title belongs to brand,
+		second is the actual brand name, or None.
 		"""
-		reduced_list = [ cl for (cl, w) in TitleClassifier.reduce(TitleClassifier.classify_words(title)) ]
+		pairs_list = TitleClassifier.reduce(TitleClassifier.classify_words(title))
+		reduced_list = [ cl for (cl, w) in pairs_list ]
+		word_list = [ w for (cl, w) in pairs_list ]
 		brand_classes = [ ['russian', 'braced_ru'],
 			['latin', 'braced_ru'],
 			['latin', 'braced_lat'],
@@ -155,6 +159,14 @@ class TitleClassifier(object):
 		]
 		if reduced_list in brand_classes:
 			#TODO: brand name extraction here
-			return True
+			if 'russian' in reduced_list:
+				k = 'russian'
+			elif 'braced_ru' in reduced_list:
+				k = 'braced_ru'
+			name = ''
+			for cl, val in pairs_list:
+				if cl == k:
+					name += val
+			return (True, name.strip(" ()"))
 		else:
-			return False
+			return (False, None)
