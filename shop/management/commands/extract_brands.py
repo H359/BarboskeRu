@@ -14,7 +14,10 @@ class Command(BaseCommand):
 		for cat in cats:
 			brand_p, brand_name = TitleClassifier.classify(cat.title)
 			if brand_p:
-				print "Gotcha! ID %s title %s" % (cat.pk, brand_name)
+				print "The category ID %s title %s is actually a brand %s" % (cat.pk, cat.title, brand_name)
+				print "Transfering it to brand now"
+				cat.to_brand(brand_name)
+				print "Complete"
 
 
 class WordClassifier(object):
