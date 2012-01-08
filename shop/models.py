@@ -12,13 +12,13 @@ from utils import cached, cached_method
 
 class EnabledManager(models.Manager):
     def get_query_set(self):
-	return super(EnabledManager, self).get_query_set().filter(enabled=True)
+        return super(EnabledManager, self).get_query_set().filter(enabled=True)
 
 class Category(MPTTModel):
     class Meta:
-	verbose_name=u'Категория'
-	verbose_name_plural=u'Категории'
-	ordering = ('lft',)
+        verbose_name=u'Категория'
+        verbose_name_plural=u'Категории'
+        ordering = ('lft',)
 
     parent        = models.ForeignKey('self', null=True, blank=True, related_name='children', verbose_name=u'Родительская категория')
     title         = models.CharField(max_length=250, verbose_name=u'Название')
@@ -29,7 +29,7 @@ class Category(MPTTModel):
     _materialized_path = models.TextField(editable=False)
 
     def save(self, *args, **kwargs):
-	super(Category, self).save(*args, **kwargs)
+        super(Category, self).save(*args, **kwargs)
         Category.objects.filter(id=self.id).update(_materialized_path = '/'.join([x.slug for x in self.get_ancestors()] + [self.slug]))
 
     @staticmethod
@@ -43,8 +43,12 @@ class Category(MPTTModel):
     def get_absolute_url(self):
         return ('shop-category', (), {'path': self._materialized_path})
 
-    def to_brand(self):
-        pass #TODO: actual code that transfers this this to category
+    def to_brand(self, brand_name):
+        brand, _created = Brand.objects.get_or_create(title=brand_name)  #brand object (may be already added before)
+        child_ids = [cat.id for cat in self.get_descendants()] #descendants of current node
+        to_move = Ware.objects.filter(category__in=child_ids)  #Ware objects that belong to descendants
+        to_move.update(category=self.parent)                   #transfering wares from child to parents
+        to_move.update(brand=brand.id)                         #setting brand for wares 
 
     def get_node_ancestors(self):
         tree = Category.get_tree()
@@ -74,9 +78,9 @@ class Brand(models.Model):
 
 class Ware(models.Model):
     class Meta:
-	verbose_name=u'Товар'
-	verbose_name_plural=u'Товары'
-	ordering = ['-position', '-id']
+        verbose_name=u'Товар'
+        verbose_name_plural=u'Товары'
+        ordering = ['-position', '-id']
 
     title       = models.CharField(max_length=250, verbose_name=u'Название')
     slug        = AutoSlugField(max_length=250, populate_from='title')
@@ -103,9 +107,9 @@ class Ware(models.Model):
 
 class Variant(models.Model):
     class Meta:
-	verbose_name=u'Вариант товара'
-	verbose_name_plural=u'Варианты товаров'
-	ordering = ['-ware', '-position', '-id']
+        verbose_name=u'Вариант товара'
+        verbose_name_plural=u'Варианты товаров'
+        ordering = ['-ware', '-position', '-id']
 
     title          = models.CharField(max_length=250, blank=True, null=True)
     ware           = models.ForeignKey(Ware, verbose_name=u'Товар', related_name='variants')
@@ -199,14 +203,14 @@ class Order(models.Model):
         return u'%s %s' % (self.fio, self.phone)
 
     def save(self, *args, **kwargs):
-	super(Order, self).save(*args, **kwargs)
-	if self.status == 1:
-	    data = {'order': self}
-	    # notify user
-	    EmailTemplate.get('shop.order.create_notification.user').send(receivers=[self.email], data=data)
-	    # notify manager
-	    managers = [user.email for user in User.objects.filter(is_staff=True)]
-	    EmailTemplate.get('shop.order.create_notification.manager').send(receivers=managers, data=data)
+        super(Order, self).save(*args, **kwargs)
+        if self.status == 1:
+            data = {'order': self}
+            # notify user
+            EmailTemplate.get('shop.order.create_notification.user').send(receivers=[self.email], data=data)
+            # notify manager
+            managers = [user.email for user in User.objects.filter(is_staff=True)]
+            EmailTemplate.get('shop.order.create_notification.manager').send(receivers=managers, data=data)
 
 class OrderedWare(models.Model):
     class Meta:
