@@ -16,8 +16,8 @@ class Command(BaseCommand):
 			if brand_p:
 				print "The category ID %s title %s is actually a brand %s" % (cat.pk, cat.title, brand_name)
 				print "Transfering it to brand now"
-				cat.to_brand(brand_name)
-				print "Complete"
+				updated = cat.to_brand(brand_name)
+				print "Complete, %s records updated" % (updated, )
 
 
 class WordClassifier(object):
@@ -57,9 +57,10 @@ class TitleClassifier(object):
 
 	@staticmethod
 	def classify_words(title):
-		title = re.sub('\(', '( ', title)
-		title = re.sub('\)', ' )', title)
+		title = re.sub('\(', ' ( ', title)
+		title = re.sub('\)', ' ) ', title)
 		title = re.sub(',', ' ', title)
+		title = re.sub('\-', ' - ', title)
 		title = re.sub('[\s]{2,}', ' ', title)
 		words = title.split(' ')
 		classified_list = []
@@ -155,6 +156,7 @@ class TitleClassifier(object):
 		word_list = [ w for (cl, w) in pairs_list ]
 		brand_classes = [ ['russian', 'braced_ru'],
 			['latin', 'braced_ru'],
+			['latin'],
 			['latin', 'braced_lat'],
 			['russian', 'braced_lat'],
 			['latin', 'dash', 'russian', 'braced_ru'],
@@ -166,6 +168,8 @@ class TitleClassifier(object):
 				k = 'russian'
 			elif 'braced_ru' in reduced_list:
 				k = 'braced_ru'
+			elif 'latin' in reduced_list:
+				k = 'latin'
 			name = ''
 			for cl, val in pairs_list:
 				if cl == k:
