@@ -11,6 +11,7 @@ class Command(BaseCommand):
 
 	def handle(self, *args, **kwargs):
 		cats = Category.objects.all()
+		overall = 0
 		for cat in cats:
 			brand_p, brand_name = TitleClassifier.classify(cat.title)
 			if brand_p:
@@ -18,6 +19,8 @@ class Command(BaseCommand):
 				print "Transfering it to brand now"
 				updated = cat.to_brand(brand_name)
 				print "Complete, %s records updated" % (updated, )
+				overall += updated
+		print "Overall wares affected: %s" % (overall, )
 
 
 class WordClassifier(object):
