@@ -47,10 +47,11 @@ class Category(MPTTModel):
         brand, _created = Brand.objects.get_or_create(title=brand_name)  #brand object (may be already added before)
         children = [cat for cat in self.get_descendants(include_self=True)] #descendants of current node
         to_move = Ware.objects.filter(category__in=[c.id for c in children])  #Ware objects that belong to descendants
+        count = to_move.count()
         to_move.update(category=self.parent, brand=brand)      #transfering wares from child to parents
         for c in children:
-            c.move_to(self.parent)
-        return to_move.count()
+            c.delete() #or should we at all?
+        return count
 
     def get_node_ancestors(self):
         tree = Category.get_tree()
