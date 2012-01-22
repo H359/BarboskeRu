@@ -10,7 +10,17 @@ from shop.models import Ware, Category
 class Command(BaseCommand):
 
     def handle(self, *args, **kwargs):
-        #TODO: PROPER tree traversing
+        def update(node, already=False):
+            brand_p, brand_name = TitleClassifier.classify(node.title)
+            if already:
+                print "Already encountered node ID %s, processing" % (node.pk,)
+            if brand_p:
+                print "The category ID %s title %s is actually a brand %s" % (current_node.pk, current_node.title, brand_name)
+                updated = node.to_brand(brand_name)
+                print "Complete, %s records updated" % (updated,)
+                return updated
+            else:
+                return 0
         cats = Category.objects.all()
         nodes_to_visit = [cat for cat in cats if cat.is_root_node() == True]
         visited_nodes = []
@@ -19,13 +29,7 @@ class Command(BaseCommand):
         while nodes_to_visit:
             current_node = nodes_to_visit.pop(0)
             if current_node in visited_nodes:
-                print "Already encountered node ID %s, processing" % (current_node.pk,)
-                brand_p, brand_name = TitleClassifier.classify(current_node.title)
-                if brand_p: 
-                    print "The category ID %s title %s is actually a brand %s" % (current_node.pk, current_node.title, brand_name)
-                    updated = current_node.to_brand(brand_name)
-                    print "Complete, %s records updated" % (updated, )
-                    overall += updated
+                overall += update(current_node, already=True)
             else:
                 current_children = current_node.get_children()
                 if current_children:
@@ -33,27 +37,16 @@ class Command(BaseCommand):
                     nodes_to_visit = list(current_children) + [current_node] + nodes_to_visit
                     visited_nodes.append(current_node)
                 else:
-                    brand_p, brand_name = TitleClassifier.classify(current_node.title)
-                    if brand_p:
-                        print "The category ID %s title %s is actually a brand %s" % (current_node.pk, current_node.title, brand_name)
-                        updated = current_node.to_brand(brand_name)
-                        print "Complete, %s records updated" % (updated, )
-                        overall += updated
-        # for cat in cats: #tree traversing comes here
-        #     brand_p, brand_name = TitleClassifier.classify(cat.title)
-        #     if brand_p:
-        #         print "The category ID %s title %s is actually a brand %s" % (cat.pk, cat.title, brand_name)
-        #         print "Transfering it to brand now"
-        #         updated = cat.to_brand(brand_name)
-        #         print "Complete, %s records updated" % (updated, )
-        #         overall += updated
+                    overall += update(current_node)
+        print "Rebuilding tree"
+        Category.tree.rebuild()
         print "Overall wares affected: %s" % (overall, )
 
 
 class WordClassifier(object):
 
     number_re = re.compile('^[0-9]+$')
-    latin_re = re.compile('^[a-zA-Z\-\'0-9]+$')
+    latin_re = re.compile('^[a-zA-Z\-\'0-9\.]+$')
     russian_re = re.compile(u'^[а-яА-Я\-]+$')
     dash_re = re.compile('^\-$')
     open_brace_re = re.compile('\(')
@@ -190,6 +183,7 @@ class TitleClassifier(object):
             ['latin'],
             ['latin', 'braced_lat'],
             ['russian', 'braced_lat'],
+            #['latin', 'russian'] -- TODO: add a workaround for this case
             ['latin', 'dash', 'russian', 'braced_ru'],
             ['russian', 'dash', 'latin', 'braced_ru']
         ]
