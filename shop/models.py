@@ -43,16 +43,33 @@ class Category(MPTTModel):
     def get_absolute_url(self):
         return ('shop-category', (), {'path': self._materialized_path})
 
+    def reposition(self, target):
+        target_children = target.children
+        same_named = [ch for ch in target_children.all() if ch.title == self.title]
+        wares = Ware.objects.filter(category=self)
+        count = wares.count()
+        if same_named:
+            destination = same_named[0]
+            for child in self.children.all():
+                child.move_to(destination)
+            wares.update(category=target)
+        else:
+            self.move_to(target) #ok i really hope that works
+        
+
     def to_brand(self, brand_name):
         brand, _created = Brand.objects.get_or_create(title=brand_name)  #brand object (may be already added before)
-        children = [cat for cat in self.get_descendants(include_self=True)] #descendants of current node
-        to_move = Ware.objects.filter(category__in=[c.id for c in children])  #Ware objects that belong to descendants
-        count = to_move.count()
-        to_move.update(category=self.parent, brand=brand)      #transfering wares from child to parents
-        for c in children:
-            c.delete() #or should we at all?
-        return count
+        parent = self.parent #parent category
+        descendants = self.get_descendants(include_self=True)
+        wares = Ware.objects.filter(category__in=descendants)
+        wares.update(brand=brand)
+        for child in self.children.all():
+            child.reposition(self.parent)
+        Ware.objects.filter(category=self).update(category=self.parent)
+        self.delete()
+        return wares.count()
 
+        
     def get_node_ancestors(self):
         tree = Category.get_tree()
         path = [self]
