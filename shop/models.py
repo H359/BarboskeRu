@@ -54,8 +54,7 @@ class Category(MPTTModel):
                 child.move_to(destination)
             wares.update(category=target)
         else:
-            self.move_to(target) #ok i really hope that works
-        
+            self.move_to(target) #ok i really hope that works        
 
     def to_brand(self, brand_name):
         brand, _created = Brand.objects.get_or_create(title=brand_name)  #brand object (may be already added before)

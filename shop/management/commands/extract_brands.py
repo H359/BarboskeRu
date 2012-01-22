@@ -112,6 +112,7 @@ class TitleClassifier(object):
         },
         'open_brace_ru': {
             'russian': ('open_brace_ru', True),
+            'dash': ('open_brace_ru', True),
             'preposition': ('open_brace_prep', True),
             'close_brace': ('braced_ru', True)
         },
