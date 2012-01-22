@@ -44,17 +44,18 @@ class Category(MPTTModel):
         return ('shop-category', (), {'path': self._materialized_path})
 
     def reposition(self, target):
+        target = Category.objects.get(pk=target.pk)
         target_children = target.children
-        same_named = [ch for ch in target_children.all() if ch.title == self.title]
+        same_named = [ch for ch in target_children.all() if ch.title == self.title and ch != self]
         wares = Ware.objects.filter(category=self)
         count = wares.count()
         if same_named:
-            destination = same_named[0]
+            destination = Category.objects.get(pk=same_named[0].pk)
             for child in self.children.all():
-                child.move_to(destination)
+                child.parent = destination
             wares.update(category=target)
         else:
-            self.move_to(target) #ok i really hope that works        
+            self.parent = target
 
     def to_brand(self, brand_name):
         brand, _created = Brand.objects.get_or_create(title=brand_name)  #brand object (may be already added before)
@@ -66,6 +67,7 @@ class Category(MPTTModel):
             child.reposition(self.parent)
         Ware.objects.filter(category=self).update(category=self.parent)
         self.delete()
+        Category.tree.rebuild()
         return wares.count()
 
         
